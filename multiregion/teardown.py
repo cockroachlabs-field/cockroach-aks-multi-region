@@ -9,10 +9,16 @@ from subprocess import call
 
 # To get the names of your kubectl "contexts" for each of your clusters, run:
 #   kubectl config get-contexts
-contexts = {
-    'us-central1-a': 'gke_cockroach-alex_us-central1-a_dns',
-    'us-central1-b': 'gke_cockroach-alex_us-central1-b_dns',
-    'us-west1-b': 'gke_cockroach-alex_us-west1-b_dns',
+contexts = {'eastus': 'crdb-aks-eastus',
+#'eastus-2': 'crdb-aks-eastus',
+#'eastus-3': 'crdb-aks-eastus',
+#'westus-1': 'crdb-aks-westus',
+#'westus-2': 'crdb-aks-westus',
+'westus': 'crdb-aks-westus',
+#'northeurope-1': 'crdb-aks-northerope',
+#'northeurope-2': 'crdb-aks-northeurope',
+'northeurope': 'crdb-aks-northeurope'
+
 }
 
 certs_dir = './certs'
