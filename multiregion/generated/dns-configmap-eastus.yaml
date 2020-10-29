@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-dns
+  namespace: kube-system
+data:
+  stubDomains: |
+    {"northeurope.svc.cluster.local": ["20.62.188.180"], "westus.svc.cluster.local": ["20.62.187.116"]}
