@@ -8,7 +8,7 @@ Tags: Azure
     ```bash
     vm_type="Standard_DS2_v2"
     n_nodes=3
-    rg="crdb-aks-multi-region"
+    rg="cockroach-chrisc"
     clus1="crdb-aks-eastus"
     clus2="crdb-aks-westus"
     clus3="crdb-aks-northeurope"
@@ -30,59 +30,59 @@ Tags: Azure
     - Create vnets for all Regions
 
         ```bash
-        az network vnet create -g $rg -n crdb-eastus --address-prefix 20.0.0.0/16 \
-            --subnet-name crdb-eastus-sub1 --subnet-prefix 20.0.0.0/24
+        az network vnet create -g $rg -n crdb-$loc1 --address-prefix 20.0.0.0/16 \
+            --subnet-name crdb-$loc1-sub1 --subnet-prefix 20.0.0.0/24
         ```
 
         ```bash
-        az network vnet create -g $rg -n crdb-westus --address-prefix 30.0.0.0/16 \
-            --subnet-name crdb-westus-sub1 --subnet-prefix 30.0.0.0/24
+        az network vnet create -g $rg -n crdb-$loc2 --address-prefix 30.0.0.0/16 \
+            --subnet-name crdb-$loc2-sub1 --subnet-prefix 30.0.0.0/24
         ```
 
         ```bash
-        az network vnet create -g $rg -n crdb-northeurope --address-prefix 40.0.0.0/16 \
-            --subnet-name crdb-northeurope-sub1 --subnet-prefix 40.0.0.0/24
+        az network vnet create -g $rg -n crdb-$loc3 --address-prefix 40.0.0.0/24 \
+            --subnet-name crdb-$loc3-sub1 --subnet-prefix 40.0.0.0/24
         ```
 
     - Peer the Vnets
 
         ```bash
-        az network vnet peering create -g $rg -n eastuswestuspeer --vnet-name crdb-eastus \
-            --remote-vnet crdb-westus --allow-vnet-access
+        az network vnet peering create -g $rg -n $loc1-$loc2-peer --vnet-name crdb-$loc1 \
+            --remote-vnet crdb-$loc2 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit
         ```
 
         ```bash
-        az network vnet peering create -g $rg -n westuseastuspeer --vnet-name crdb-westus \
-            --remote-vnet crdb-eastus --allow-vnet-access
+        az network vnet peering create -g $rg -n $loc2-$loc3-peer --vnet-name crdb-$loc2 \
+            --remote-vnet crdb-$loc3 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit
         ```
 
         ```bash
-        az network vnet peering create -g $rg -n eastusnortheuropepeer --vnet-name crdb-eastus \
-            --remote-vnet crdb-northeurope --allow-vnet-access
+        az network vnet peering create -g $rg -n $loc1-$loc3-peer --vnet-name crdb-$loc1 \
+            --remote-vnet crdb-$loc3 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit
         ```
 
         ```bash
-        az network vnet peering create -g $rg -n northeurpoeeastuspeer --vnet-name crdb-northeurope \
-            --remote-vnet crdb-eastus --allow-vnet-access
+        az network vnet peering create -g $rg -n $loc2-$loc1-peer --vnet-name crdb-$loc2 \
+            --remote-vnet crdb-$loc1 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit
         ```
 
         ```bash
-        az network vnet peering create -g $rg -n westusnortheuropepeer --vnet-name crdb-westus \
-            --remote-vnet crdb-northeurope --allow-vnet-access
+        az network vnet peering create -g $rg -n $loc3-$loc2-peer --vnet-name crdb-$loc3 \
+            --remote-vnet crdb-$loc2 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit
         ```
 
         ```bash
-        az network vnet peering create -g $rg -n northeuropewestuspeer --vnet-name crdb-northeurope \
-            --remote-vnet crdb-westus --allow-vnet-access
+        az network vnet peering create -g $rg -n $loc3-$loc1-peer --vnet-name crdb-$loc3 \
+            --remote-vnet crdb-$loc1 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit
         ```
 
 - Create the Kubernetes clusters in each region
     - To get SubnetID
 
         ```bash
-        az network vnet subnet list --resource-group $rg --vnet-name crdb-eastus
-        az network vnet subnet list --resource-group $rg --vnet-name crdb-westus
-        az network vnet subnet list --resource-group $rg --vnet-name crdb-northeurope
+        loc1subid=$(az network vnet subnet list --resource-group $rg --vnet-name crdb-$loc1 | jq -r '.[].id')
+        loc2subid=$(az network vnet subnet list --resource-group $rg --vnet-name crdb-$loc2 | jq -r '.[].id')
+        loc3subid=$(az network vnet subnet list --resource-group $rg --vnet-name crdb-$loc3 | jq -r '.[].id')
         ```
 
     - Create K8s Clusters in each region
@@ -93,7 +93,7 @@ Tags: Azure
         --resource-group $rg \
         --network-plugin azure \
         --zones 1 2 3 \
-        --vnet-subnet-id /subscriptions/eebc0b2a-9ff2-499c-9e75-1a32e8fe13b3/resourceGroups/crdb-aks-multi-region/providers/Microsoft.Network/virtualNetworks/crdb-eastus/subnets/crdb-eastus-sub1 \
+        --vnet-subnet-id $loc1subid \
         --node-count $n_nodes
         ```
 
@@ -103,8 +103,8 @@ Tags: Azure
         --resource-group $rg \
         --network-plugin azure \
         --zones 1 2 3 \
-        --vnet-subnet-id /subscriptions/eebc0b2a-9ff2-499c-9e75-1a32e8fe13b3/resourceGroups/crdb-aks-multi-region/providers/Microsoft.Network/virtualNetworks/crdb-westus/subnets/crdb-westus-sub1 \
-        --node-count $n_nodes 
+        --vnet-subnet-id $loc2subid \
+        --node-count $n_nodes
 
         ```
 
@@ -114,8 +114,8 @@ Tags: Azure
         --resource-group $rg \
         --network-plugin azure \
         --zones 1 2 3 \
-        --vnet-subnet-id /subscriptions/eebc0b2a-9ff2-499c-9e75-1a32e8fe13b3/resourceGroups/crdb-aks-multi-region/providers/Microsoft.Network/virtualNetworks/crdb-northeurope/subnets/crdb-northeurope-sub1 \
-        --node-count $n_nodes 
+        --vnet-subnet-id $loc3subid \
+        --node-count $n_nodes
 
         ```
 
@@ -149,7 +149,7 @@ Tags: Azure
         #Create a test pod to ping
         kubectl run network-test --image=alpine --restart=Never -- sleep 999999
         # Get Ip addresss of pod to ping
-        kubectl describe pods 
+        kubectl describe pods
         #Switch to Eastus context
         kubectl config use-context crdb-aks-eastus
         # Create a pod and ping the test pod
@@ -203,7 +203,13 @@ Tags: Azure
 
             As the script creates various resources and creates and initializes the CockroachDB cluster, you'll see a lot of output, eventually ending with `job "cluster-init-secure" created`.
 
-        7. Confirm that the CockroachDB pods in each cluster say `1/1` in the `READY` column, indicating that they've successfully joined the cluster:    
+        7. Add Core DNS
+
+            ```bash
+            kubectl get -n kube-system cm/coredns --export -o yaml --context crdb-aks-eastus
+            ```
+
+        8. Confirm that the CockroachDB pods in each cluster say `1/1` in the `READY` column, indicating that they've successfully joined the cluster:    
 
             ```bash
             kubectl get pods --selector app=cockroachdb --all-namespaces --context <cluster-context-1>
@@ -232,24 +238,19 @@ Tags: Azure
             us-west1-a cockroachdb-1 1/1 Running 0 14m
             us-west1-a cockroachdb-2 1/1 Running 0 14m`
 
-            If you notice that only one of the Kubernetes clusters' pods are marked as `READY`, you likely also need to configure a network firewall rule that will allow the pods in the different clusters to talk to each other. You can run the following command to create a firewall rule allowing traffic on port 26257 (the port used by CockroachDB for inter-node traffic) within your private GCE network. It will not allow any traffic in from outside your private network:
 
-            ```bash
-            az network nsg create --name cockroach-internal \
-            --resource-group $rg
-            ```
+        9. Create secure clients
 
-            ```bash
-            az network nsg rule create -g $rg --nsg-name cockroach-internal -n SQLports --priority 100 \
-            --source-address-prefixes 20.0.0.0/24 30.0.0.0/24 40.0.0.0/24 --source-port-ranges 26257 \
-            --destination-address-prefixes '*' --destination-port-ranges 26257 --access Allow \
-            --protocol Tcp --description "Allow internal cockroach Traffic"
-            ```
+        ```bash
+        kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/client-secure.yaml --namespace $loc1
+        ```
 
-            ```bash
-            az network vnet subnet update -g $rg -n crdb-eastus-sub1 --vnet-name crdb-eastus --network-security-group cockroach-internal
+        ```bash
+        kubectl exec -it cockroachdb-client-secure -n $loc1 -- ./cockroach sql --certs-dir=/cockroach-certs --host=cockroachdb-public
+        ```
 
-            az network vnet subnet update -g $rg -n crdb-westus-sub1 --vnet-name crdb-westus --network-security-group cockroach-internal
+        10. Port forward the admin ui
 
-            az network vnet subnet update -g $rg -n crdb-northeurope-sub1 --vnet-name crdb-northeurope --network-security-group cockroach-internal
-            ```
+        ```bash
+        kubectl port-forward cockroachdb-0 8080 --context $clus1 --namespace $loc1
+        ```
