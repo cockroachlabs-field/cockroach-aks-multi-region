@@ -203,7 +203,13 @@ Tags: Azure
 
             As the script creates various resources and creates and initializes the CockroachDB cluster, you'll see a lot of output, eventually ending with `job "cluster-init-secure" created`.
 
-        7. Confirm that the CockroachDB pods in each cluster say `1/1` in the `READY` column, indicating that they've successfully joined the cluster:    
+        7. Add Core DNS
+
+            ```bash
+            kubectl get -n kube-system cm/coredns --export -o yaml --context crdb-aks-eastus
+            ```
+
+        8. Confirm that the CockroachDB pods in each cluster say `1/1` in the `READY` column, indicating that they've successfully joined the cluster:    
 
             ```bash
             kubectl get pods --selector app=cockroachdb --all-namespaces --context <cluster-context-1>
@@ -232,24 +238,19 @@ Tags: Azure
             us-west1-a cockroachdb-1 1/1 Running 0 14m
             us-west1-a cockroachdb-2 1/1 Running 0 14m`
 
-            If you notice that only one of the Kubernetes clusters' pods are marked as `READY`, you likely also need to configure a network firewall rule that will allow the pods in the different clusters to talk to each other. You can run the following command to create a firewall rule allowing traffic on port 26257 (the port used by CockroachDB for inter-node traffic) within your private GCE network. It will not allow any traffic in from outside your private network:
 
-            ```bash
-            az network nsg create --name cockroach-internal \
-            --resource-group $rg
-            ```
+        9. Create secure clients
 
-            ```bash
-            az network nsg rule create -g $rg --nsg-name cockroach-internal -n SQLports --priority 100 \
-            --source-address-prefixes 20.0.0.0/24 30.0.0.0/24 40.0.0.0/24 --source-port-ranges 26257 \
-            --destination-address-prefixes '*' --destination-port-ranges 26257 --access Allow \
-            --protocol Tcp --description "Allow internal cockroach Traffic"
-            ```
+        ```bash
+        kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/client-secure.yaml --namespace $loc1
+        ```
 
-            ```bash
-            az network vnet subnet update -g $rg -n crdb-eastus-sub1 --vnet-name crdb-eastus --network-security-group cockroach-internal
+        ```bash
+        kubectl exec -it cockroachdb-client-secure -n $loc1 -- ./cockroach sql --certs-dir=/cockroach-certs --host=cockroachdb-public
+        ```
 
-            az network vnet subnet update -g $rg -n crdb-westus-sub1 --vnet-name crdb-westus --network-security-group cockroach-internal
+        10. Port forward the admin ui
 
-            az network vnet subnet update -g $rg -n crdb-northeurope-sub1 --vnet-name crdb-northeurope --network-security-group cockroach-internal
-            ```
+        ```bash
+        kubectl port-forward cockroachdb-0 8080 --context $clus1 --namespace $loc1
+        ```
