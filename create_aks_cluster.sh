@@ -33,14 +33,14 @@ vnet3=$resourcegroup"-crdb-vnet-"$loc3
 vnet1_subnet_name=$resourcegroup"-crdb-"$loc1"-sub1"
 vnet2_subnet_name=$resourcegroup"-crdb-"$loc2"-sub1"
 vnet3_subnet_name=$resourcegroup"-crdb-"$loc3"-sub1"
-log=create.log
+log=$PWD/create.log
 comma="'"
 
 
 # backup the $HOME/.kube/config
 cp $HOME/.kube/config $HOME/.kube/config.orig 
 
-> ./$log
+date > ./$log
 
 # Output Variables
 echo "VM type is: " $vm_type
@@ -127,13 +127,13 @@ subnet3_id=$(az network vnet subnet list --resource-group $resourcegroup --vnet-
 echo "Subnet3 id is: " $subnet3_id >> ./$log
 
 # create the k8s clusters
-az aks create --name $clus1 --resource-group $resourcegroup --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet1_id --node-count $n_nodes --assign-identity $id --location $loc1 --output tsv >> ./$log
+az aks create --name $clus1 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet1_id --node-count $n_nodes --assign-identity $id --location $loc1 --output tsv >> ./$log
 echo "k8s1 created"
 
-az aks create --name $clus2 --resource-group $resourcegroup --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet2_id --node-count $n_nodes --assign-identity $id --location $loc2 --output tsv >> ./$log
+az aks create --name $clus2 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet2_id --node-count $n_nodes --assign-identity $id --location $loc2 --output tsv >> ./$log
 echo "k8s2 created"
 
-az aks create --name $clus3 --resource-group $resourcegroup --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet3_id --node-count $n_nodes --assign-identity $id --location $loc3 --output tsv >> ./$log
+az aks create --name $clus3 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet3_id --node-count $n_nodes --assign-identity $id --location $loc3 --output tsv >> ./$log
 echo "k8s3 created"
 
 # get contexts
@@ -270,3 +270,5 @@ echo "Applied port forwarding"
 echo "Applied port forwarding" >> ./$log
 
 echo "Complete!"
+echo "Complete!" >> ./$log
+date >> ./$log
