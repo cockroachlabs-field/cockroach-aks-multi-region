@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ name: coredns-custom
+ namespace: kube-system
+data:
+ cockroachdns.server: |
+   northeurope.svc.cluster.local:53 {       # <---- Modify
+       log
+       errors
+       ready
+       cache 10
+       forward . 10.0.255.97 10.0.250.132 20.93.54.60 {      # <---- Modify
+                        # <---- Modify
+       }
+   }
+   germanywestcentral.svc.cluster.local:53 {       # <---- Modify
+       log
+       errors
+       ready
+       cache 10
+       forward . 10.0.220.42 10.0.182.50 20.79.229.74 {      # <---- Modify
+                        # <---- Modify
+       }
+   }
