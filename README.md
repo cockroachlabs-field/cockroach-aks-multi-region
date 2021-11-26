@@ -215,31 +215,29 @@ Tags: Azure
             curl -O https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/eks/configmap.yaml
             ```
 
-            2. After [obtaining the IP addresses of the ingress load balancers in all 3 regions aks clusters, you can use this information to define a separate ConfigMap for each region. Each unique ConfigMap lists the forwarding addresses for the pods in the 2 other regions
+            2. For each region get the internal and external IP addresses of the kube-dns-lb and the IP address of the ClusterIP of the cockroachdb-public service. You can use this information to define a separate ConfigMap for each region. Each unique ConfigMap lists the forwarding addresses for the pods in the 2 other regions
 
             For each region, modify `configmap.yaml` by replacing:
 
+            - name `coredns` with `coredns-custom` (AKS reverts any changes to coredns so by using coredns-custom it persists)
+            - `Corefile` to <something>.server, e.g. `cockroachdns.server`
+            - remove all the lines from `.:53 {` up to the `<cluster-namespace...`
             - `region2` and `region3` with the namespaces in which the CockroachDB pods will run in the other 2 regions.
-            - `ip1`, `ip2`, and `ip3` with the IP addresses of the Network Load Balancers in the region, which you looked up in the previous step.
+            - `ip1`, `ip2`, and `ip3` with the IP addresses of the Network Load Balancers and cockroachdb-public service ClusterIP  in the region, which you looked up in the previous step.
+            - Remove the force_tcp entries
 
             You will end up with 3 different ConfigMaps. Give each ConfigMap a unique filename like `configmap-1.yaml`. An example of which can be found in this repository
 
-            3. For each region, first back up the existing ConfigMap:  
-
-            ```bash
-            kubectl -n kube-system get configmap coredns -o yaml > <configmap-backup-name>
-            ```
-
-            Then apply the new ConfigMap:
+            3. For each region, apply the new ConfigMap:
 
             ```bash
             kubectl apply -f <configmap-name> --context <cluster-context>
             ```
 
-            4. For each region, check that your CoreDNS settings were applied: 
-
+            4. Delete the coredns pods, these will be automatically restarted with the new DNS configuration.
+    
             ```bash
-            kubectl get -n kube-system cm/coredns --export -o yaml --context <cluster-context>
+            kubectl delete pod --namespace kube-system --selector k8s-app=kube-dns --context <cluster-context>
             ```
 
         8. Confirm that the CockroachDB pods in each cluster say `1/1` in the `READY` column - This could take a couple of minutes to propergate, indicating that they've successfully joined the cluster:    
