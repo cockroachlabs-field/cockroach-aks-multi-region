@@ -40,7 +40,7 @@ comma="'"
 # backup the $HOME/.kube/config
 cp $HOME/.kube/config $HOME/.kube/config.orig 
 
-date > ./$log
+date > $log
 
 # Output Variables
 echo "VM type is: " $vm_type
@@ -71,69 +71,69 @@ echo "VNet3 subnet name is: "$vnet3_subnet_name
 echo "Vnet3 subnet prefix is: "$vnet3_subnet_prefix
 echo "Cluster3 name is: " $clus3
 
-echo "VM type is: " $vm_type >> ./$log
-echo "Number of nodes are: " $n_nodes >> ./$log
-echo "Resource Group name is: " $resourcegroup >> ./$log
-echo "" >> ./$log
-echo "*** Region 1 ***" >> ./$log
-echo "Region1 is: " $loc1 >> ./$log
-echo "VNet1 name is: " $vnet1 >> ./$log
-echo "VNet1 CIDR is: " $vnet1_cidr >> ./$log
-echo "VNet1 subnet name is: "$vnet1_subnet_name >> ./$log
-echo "Vnet1 subnet prefix is: "$vnet1_subnet_prefix >> ./$log
-echo "Cluster1 name is: " $clus1 >> ./$log
-echo "" >> ./$log
-echo "*** Region 2 ***" >> ./$log
-echo "Region2 is: " $loc2 >> ./$log
-echo "VNet2 name is: " $vnet2 >> ./$log
-echo "VNet2 CIDR is: " $vnet2_cidr >> ./$log
-echo "VNet2 subnet name is: "$vnet2_subnet_name >> ./$log
-echo "VNet2 subnet prefix is: "$vnet2_subnet_prefix >> ./$log
-echo "Cluster2 name is: " $clus2 >> ./$log
-echo "" >> ./$log
-echo "*** Region 3 ***" >> ./$log
-echo "Region3 is: " $loc3 >> ./$log
-echo "VNet3 name is: " $vnet3 >> ./$log
-echo "VNet3 CIDR is: " $vnet3_cidr >> ./$log
-echo "VNet3 subnet name is: "$vnet3_subnet_name >> ./$log
-echo "Vnet3 subnet prefix is: "$vnet3_subnet_prefix >> ./$log
-echo "Cluster3 name is: " $clus3 >> ./$log
+echo "VM type is: " $vm_type >> $log
+echo "Number of nodes are: " $n_nodes >> $log
+echo "Resource Group name is: " $resourcegroup >> $log
+echo "" >> $log
+echo "*** Region 1 ***" >> $log
+echo "Region1 is: " $loc1 >> $log
+echo "VNet1 name is: " $vnet1 >> $log
+echo "VNet1 CIDR is: " $vnet1_cidr >> $log
+echo "VNet1 subnet name is: "$vnet1_subnet_name >> $log
+echo "Vnet1 subnet prefix is: "$vnet1_subnet_prefix >> $log
+echo "Cluster1 name is: " $clus1 >> $log
+echo "" >> $log
+echo "*** Region 2 ***" >> $log
+echo "Region2 is: " $loc2 >> $log
+echo "VNet2 name is: " $vnet2 >> $log
+echo "VNet2 CIDR is: " $vnet2_cidr >> $log
+echo "VNet2 subnet name is: "$vnet2_subnet_name >> $log
+echo "VNet2 subnet prefix is: "$vnet2_subnet_prefix >> $log
+echo "Cluster2 name is: " $clus2 >> $log
+echo "" >> $log
+echo "*** Region 3 ***" >> $log
+echo "Region3 is: " $loc3 >> $log
+echo "VNet3 name is: " $vnet3 >> $log
+echo "VNet3 CIDR is: " $vnet3_cidr >> $log
+echo "VNet3 subnet name is: "$vnet3_subnet_name >> $log
+echo "Vnet3 subnet prefix is: "$vnet3_subnet_prefix >> $log
+echo "Cluster3 name is: " $clus3 >> $log
 
 # create a resource group & k8s identity
-az group create --name $resourcegroup --location $loc1 --output tsv >> ./$log
+az group create --name $resourcegroup --location $loc1 --output tsv >> $log
 id=$(az identity create --resource-group $resourcegroup --name ajs-k8s-id --output tsv --query "id")
-echo "ID is: "$id >> ./$log
+echo "ID is: "$id >> $log
 
 # create 3 vnets
-az network vnet create -g $resourcegroup -n $vnet1 --address-prefix $vnet1_cidr --subnet-name $vnet1_subnet_name --subnet-prefix $vnet1_subnet_prefix --location $loc1 --output tsv >> ./$log
-az network vnet create -g $resourcegroup -n $vnet2 --address-prefix $vnet2_cidr --subnet-name $vnet2_subnet_name --subnet-prefix $vnet2_subnet_prefix --location $loc2 --output tsv >> ./$log
-az network vnet create -g $resourcegroup -n $vnet3 --address-prefix $vnet3_cidr --subnet-name $vnet3_subnet_name --subnet-prefix $vnet3_subnet_prefix --location $loc3 --output tsv >> ./$log
+az network vnet create -g $resourcegroup -n $vnet1 --address-prefix $vnet1_cidr --subnet-name $vnet1_subnet_name --subnet-prefix $vnet1_subnet_prefix --location $loc1 --output tsv >> $log
+az network vnet create -g $resourcegroup -n $vnet2 --address-prefix $vnet2_cidr --subnet-name $vnet2_subnet_name --subnet-prefix $vnet2_subnet_prefix --location $loc2 --output tsv >> $log
+az network vnet create -g $resourcegroup -n $vnet3 --address-prefix $vnet3_cidr --subnet-name $vnet3_subnet_name --subnet-prefix $vnet3_subnet_prefix --location $loc3 --output tsv >> $log
 
 # peer the 3 vnets
-az network vnet peering create -g $resourcegroup -n $loc1-$loc2-peer --vnet-name $vnet1 --remote-vnet $vnet2 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> ./$log
-az network vnet peering create -g $resourcegroup -n $loc1-$loc3-peer --vnet-name $vnet1 --remote-vnet $vnet3 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> ./$log
+az network vnet peering create -g $resourcegroup -n $loc1-$loc2-peer --vnet-name $vnet1 --remote-vnet $vnet2 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> $log
+az network vnet peering create -g $resourcegroup -n $loc1-$loc3-peer --vnet-name $vnet1 --remote-vnet $vnet3 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> $log
 
-az network vnet peering create -g $resourcegroup -n $loc2-$loc1-peer --vnet-name $vnet2 --remote-vnet $vnet1 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> ./$log
-az network vnet peering create -g $resourcegroup -n $loc2-$loc3-peer --vnet-name $vnet2 --remote-vnet $vnet3 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> ./$log
+az network vnet peering create -g $resourcegroup -n $loc2-$loc1-peer --vnet-name $vnet2 --remote-vnet $vnet1 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> $log
+az network vnet peering create -g $resourcegroup -n $loc2-$loc3-peer --vnet-name $vnet2 --remote-vnet $vnet3 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> $log
 
-az network vnet peering create -g $resourcegroup -n $loc3-$loc1-peer --vnet-name $vnet3 --remote-vnet $vnet1 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> ./$log
-az network vnet peering create -g $resourcegroup -n $loc3-$loc2-peer --vnet-name $vnet3 --remote-vnet $vnet2 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> ./$log
+az network vnet peering create -g $resourcegroup -n $loc3-$loc1-peer --vnet-name $vnet3 --remote-vnet $vnet1 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> $log
+az network vnet peering create -g $resourcegroup -n $loc3-$loc2-peer --vnet-name $vnet3 --remote-vnet $vnet2 --allow-vnet-access --allow-forwarded-traffic --allow-gateway-transit --output tsv >> $log
 
 subnet1_id=$(az network vnet subnet list --resource-group $resourcegroup --vnet-name $vnet1 --output tsv --query "[?name=='"$vnet1_subnet_name"'].id")
-echo "Subnet1 id is: " $subnet1_id >> ./$log
+echo "Subnet1 id is: " $subnet1_id >> $log
 subnet2_id=$(az network vnet subnet list --resource-group $resourcegroup --vnet-name $vnet2 --output tsv --query "[?name=='"$vnet2_subnet_name"'].id")
-echo "Subnet2 id is: " $subnet2_id >> ./$log
+echo "Subnet2 id is: " $subnet2_id >> $log
 subnet3_id=$(az network vnet subnet list --resource-group $resourcegroup --vnet-name $vnet3 --output tsv --query "[?name=='"$vnet3_subnet_name"'].id")
-echo "Subnet3 id is: " $subnet3_id >> ./$log
+echo "Subnet3 id is: " $subnet3_id >> $log
 
 # create the k8s clusters
-az aks create --name $clus1 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet1_id --node-count $n_nodes --assign-identity $id --location $loc1 --output tsv >> ./$log
+az aks create --name $clus1 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet1_id --node-count $n_nodes --assign-identity $id --location $loc1 --output tsv >> $log
 echo "k8s1 created"
 
-az aks create --name $clus2 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet2_id --node-count $n_nodes --assign-identity $id --location $loc2 --output tsv >> ./$log
+az aks create --name $clus2 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet2_id --node-count $n_nodes --assign-identity $id --location $loc2 --output tsv >> $log
 echo "k8s2 created"
 
-az aks create --name $clus3 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet3_id --node-count $n_nodes --assign-identity $id --location $loc3 --output tsv >> ./$log
+az aks create --name $clus3 --resource-group $resourcegroup --node-vm-size $vm_type --network-plugin azure --zones 1 2 3 --vnet-subnet-id $subnet3_id --node-count $n_nodes --assign-identity $id --location $loc3 --output tsv >> $log
 echo "k8s3 created"
 
 # get contexts
@@ -159,13 +159,13 @@ cat setup_tmp.py | sed 's/^regions = {/regions = { '''$comma$loc1$comma''': '''$
 rm setup_tmp.py
 
 echo "Start setup.py"
-echo "Start setup.py" >> ./$log
+echo "Start setup.py" >> $log
 
 # Run the setupscript ***USING PYTHON 2***
-python2 ./setup_ajs.py >> ./$log
+python2 ./setup_ajs.py >> $log
 
 echo "Completed setup.py"
-echo "Completed setup.py" >> ./$log
+echo "Completed setup.py" >> $log
 
 # get the LB external IP addresses
 lb1_ipX=$(kubectl get services --context $clus1 --all-namespaces | grep kube-dns-lb | awk "{ print \$5 }")
@@ -182,24 +182,24 @@ lb1_ipC=$(kubectl get services --context $clus1 -n $loc1 | grep cockroachdb-publ
 lb2_ipC=$(kubectl get services --context $clus2 -n $loc2 | grep cockroachdb-public | grep ClusterIP | awk "{ print \$3 }")
 lb3_ipC=$(kubectl get services --context $clus3 -n $loc3 | grep cockroachdb-public | grep ClusterIP | awk "{ print \$3 }")
 
-echo "cluster 1 DNS ips" >> ./$log
-echo "lb1_ipX is: " $lb1_ipX >> ./$log
-echo "lb1_ipI is: " $lb1_ipI >> ./$log
-echo "lb1_ipC is: " $lb1_ipC >> ./$log
+echo "cluster 1 DNS ips" >> $log
+echo "lb1_ipX is: " $lb1_ipX >> $log
+echo "lb1_ipI is: " $lb1_ipI >> $log
+echo "lb1_ipC is: " $lb1_ipC >> $log
 
 
-echo "cluster 2 DNS ips" >> ./$log
-echo "lb2_ipX is: " $lb2_ipX >> ./$log
-echo "lb2_ipI is: " $lb2_ipI >> ./$log
-echo "lb2_ipC is: " $lb2_ipC >> ./$log
+echo "cluster 2 DNS ips" >> $log
+echo "lb2_ipX is: " $lb2_ipX >> $log
+echo "lb2_ipI is: " $lb2_ipI >> $log
+echo "lb2_ipC is: " $lb2_ipC >> $log
 
-echo "cluster 3 DNS ips" >> ./$log
-echo "lb3_ipX is: " $lb3_ipX >> ./$log
-echo "lb3_ipI is: " $lb3_ipI >> ./$log
-echo "lb3_ipC is: " $lb3_ipC >> ./$log
+echo "cluster 3 DNS ips" >> $log
+echo "lb3_ipX is: " $lb3_ipX >> $log
+echo "lb3_ipI is: " $lb3_ipI >> $log
+echo "lb3_ipC is: " $lb3_ipC >> $log
 
 echo "Got LB IPs"
-echo "Got LB IPs" >> ./$log
+echo "Got LB IPs" >> $log
 
 # Create the updated configmap.yaml file for the coredns-custom
 # 1: get the header
@@ -232,27 +232,27 @@ kubectl -n kube-system get configmap coredns -o yaml --context $clus2 > configma
 kubectl -n kube-system get configmap coredns -o yaml --context $clus3 > configmap3.yaml
 
 # create custom coredns contexts, delete existing coredns pods to get new DNS settings
-echo "Applying configmap to "$clus1 >> ./$log
-echo "**** configmap contents ****" >> ./$log
-cat configmap_ajs1.yaml >> ./$log
+echo "Applying configmap to "$clus1 >> $log
+echo "**** configmap contents ****" >> $log
+cat configmap_ajs1.yaml >> $log
 kubectl apply -f configmap_ajs1.yaml --context $clus1 && kubectl delete pod --namespace kube-system --selector k8s-app=kube-dns --context $clus1
 sleep 3
 
 
 echo "Applying configmap to "$clus2
-echo "**** configmap contents ****" >> ./$log
-cat configmap_ajs2.yaml >> ./$log
+echo "**** configmap contents ****" >> $log
+cat configmap_ajs2.yaml >> $log
 kubectl apply -f configmap_ajs2.yaml --context $clus2 && kubectl delete pod --namespace kube-system --selector k8s-app=kube-dns --context $clus3
 sleep 3
 
 echo "Applying configmap to "$clus3
-echo "**** configmap contents ****" >> ./$log
-cat configmap_ajs3.yaml >> ./$log
+echo "**** configmap contents ****" >> $log
+cat configmap_ajs3.yaml >> $log
 kubectl apply -f configmap_ajs3.yaml --context $clus3 && kubectl delete pod --namespace kube-system --selector k8s-app=kube-dns --context $clus3
 sleep 3
 
 echo "Applied Configmaps"
-echo "Applied Configmaps" >> ./$log
+echo "Applied Configmaps" >> $log
 
 # Create secure clients
 kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/client-secure.yaml --namespace $loc1 --context $clus1
@@ -260,15 +260,15 @@ kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master
 kubectl create -f https://raw.githubusercontent.com/cockroachdb/cockroach/master/cloud/kubernetes/multiregion/client-secure.yaml --namespace $loc3 --context $clus3
 
 echo "Created secure clients"
-echo "Created Secure clients" >> ./$log
+echo "Created Secure clients" >> $log
 
 # Port forward the admin UI 
 nohup kubectl port-forward cockroachdb-0 8080 --context $clus1 --namespace $loc1 > /dev/null &
 nohup kubectl port-forward cockroachdb-0 26257 --context $clus1 --namespace $loc1 > /dev/null &
 
 echo "Applied port forwarding"
-echo "Applied port forwarding" >> ./$log
+echo "Applied port forwarding" >> $log
 
 echo "Complete!"
-echo "Complete!" >> ./$log
-date >> ./$log
+echo "Complete!" >> $log
+date >> $log
