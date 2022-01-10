@@ -94,6 +94,7 @@ Tags: Azure
         --network-plugin azure \
         --zones 1 2 3 \
         --vnet-subnet-id $loc1subid \
+        --node-vm-size $vm_type \
         --node-count $n_nodes
         ```
 
@@ -104,6 +105,7 @@ Tags: Azure
         --network-plugin azure \
         --zones 1 2 3 \
         --vnet-subnet-id $loc2subid \
+        --node-vm-size $vm_type \
         --node-count $n_nodes
 
         ```
@@ -115,6 +117,7 @@ Tags: Azure
         --network-plugin azure \
         --zones 1 2 3 \
         --vnet-subnet-id $loc3subid \
+        --node-vm-size $vm_type \
         --node-count $n_nodes
 
         ```
